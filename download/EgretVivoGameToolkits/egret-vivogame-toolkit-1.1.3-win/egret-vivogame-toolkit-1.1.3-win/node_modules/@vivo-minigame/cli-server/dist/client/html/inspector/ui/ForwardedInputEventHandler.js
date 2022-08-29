@@ -1,0 +1,4 @@
+import*as Common from'../common/common.js';import*as Host from'../host/host.js';import{KeyboardShortcut}from'./KeyboardShortcut.js';import{ForwardedShortcut}from'./ShortcutRegistry.js';export class ForwardedInputEventHandler{constructor(){Host.InspectorFrontendHost.InspectorFrontendHostInstance.events.addEventListener(Host.InspectorFrontendHostAPI.Events.KeyEventUnhandled,this._onKeyEventUnhandled,this);}
+_onKeyEventUnhandled(event){const data=event.data;const type=(data.type);const key=(data.key);const keyCode=(data.keyCode);const modifiers=(data.modifiers);if(type!=='keydown'){return;}
+self.UI.context.setFlavor(ForwardedShortcut,ForwardedShortcut.instance);self.UI.shortcutRegistry.handleKey(KeyboardShortcut.makeKey(keyCode,modifiers),key);self.UI.context.setFlavor(ForwardedShortcut,null);}}
+new ForwardedInputEventHandler();

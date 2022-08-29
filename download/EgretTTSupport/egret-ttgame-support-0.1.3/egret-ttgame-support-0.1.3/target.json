@@ -1,0 +1,19 @@
+{
+	"projectType": "ttgame",
+	"version": "0.1.3",
+	"args": [
+		{
+			"name": "appid",
+			"default": "testappId",
+			"files": [
+				"project.config.json"
+			]
+		},
+		{
+			"name": "projectname",
+			"files": [
+				"project.config.json"
+			]
+		}
+	]
+}

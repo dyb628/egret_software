@@ -1,0 +1,6 @@
+import{Action}from'./Action.js';import{Context}from'./Context.js';export class ActionRegistry{constructor(){this._actionsById=new Map();this._registerActions();}
+_registerActions(){self.runtime.extensions('action').forEach(registerExtension,this);function registerExtension(extension){if(!extension.canInstantiate()){return;}
+const actionId=extension.descriptor()['actionId'];console.assert(actionId);console.assert(!this._actionsById.get(actionId));const action=new Action(extension);if(!action.category()||action.title()){this._actionsById.set(actionId,action);}else{console.error(`Category actions require a title for command menu: ${actionId}`);}}}
+availableActions(){return this.applicableActions([...this._actionsById.keys()],self.UI.context);}
+applicableActions(actionIds,context){const extensions=[];actionIds.forEach(function(actionId){const action=this._actionsById.get(actionId);if(action){extensions.push(action.extension());}},this);return[...context.applicableExtensions(extensions)].map(extensionToAction.bind(this));function extensionToAction(extension){return((this.action(extension.descriptor()['actionId'])));}}
+action(actionId){return this._actionsById.get(actionId)||null;}}

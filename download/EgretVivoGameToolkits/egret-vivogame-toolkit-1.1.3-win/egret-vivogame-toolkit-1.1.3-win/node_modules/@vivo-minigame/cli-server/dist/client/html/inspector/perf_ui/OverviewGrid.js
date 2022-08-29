@@ -1,0 +1,64 @@
+import*as Common from'../common/common.js';import*as UI from'../ui/ui.js';import{Calculator,TimelineGrid}from'./TimelineGrid.js';export class OverviewGrid{constructor(prefix,calculator){this.element=createElement('div');this.element.id=prefix+'-overview-container';this._grid=new TimelineGrid();this._grid.element.id=prefix+'-overview-grid';this._grid.setScrollTop(0);this.element.appendChild(this._grid.element);this._window=new Window(this.element,this._grid.dividersLabelBarElement,calculator);}
+clientWidth(){return this.element.clientWidth;}
+updateDividers(calculator){this._grid.updateDividers(calculator);}
+addEventDividers(dividers){this._grid.addEventDividers(dividers);}
+removeEventDividers(){this._grid.removeEventDividers();}
+reset(){this._window.reset();}
+windowLeft(){return this._window.windowLeft;}
+windowRight(){return this._window.windowRight;}
+setWindow(left,right){this._window._setWindow(left,right);}
+addEventListener(eventType,listener,thisObject){return this._window.addEventListener(eventType,listener,thisObject);}
+setClickHandler(clickHandler){this._window.setClickHandler(clickHandler);}
+zoom(zoomFactor,referencePoint){this._window._zoom(zoomFactor,referencePoint);}
+setResizeEnabled(enabled){this._window.setEnabled(enabled);}}
+export const MinSelectableSize=14;export const WindowScrollSpeedFactor=.3;export const ResizerOffset=3.5;export const OffsetFromWindowEnds=10;export class Window extends Common.ObjectWrapper.ObjectWrapper{constructor(parentElement,dividersLabelBarElement,calculator){super();this._parentElement=parentElement;UI.ARIAUtils.markAsGroup(this._parentElement);this._calculator=calculator;UI.ARIAUtils.setAccessibleName(this._parentElement,ls`Overview grid window`);UI.UIUtils.installDragHandle(this._parentElement,this._startWindowSelectorDragging.bind(this),this._windowSelectorDragging.bind(this),this._endWindowSelectorDragging.bind(this),'text',null);if(dividersLabelBarElement){UI.UIUtils.installDragHandle(dividersLabelBarElement,this._startWindowDragging.bind(this),this._windowDragging.bind(this),null,'-webkit-grabbing','-webkit-grab');}
+this._parentElement.addEventListener('mousewheel',this._onMouseWheel.bind(this),true);this._parentElement.addEventListener('dblclick',this._resizeWindowMaximum.bind(this),true);UI.Utils.appendStyle(this._parentElement,'perf_ui/overviewGrid.css');this._leftResizeElement=parentElement.createChild('div','overview-grid-window-resizer');UI.UIUtils.installDragHandle(this._leftResizeElement,this._resizerElementStartDragging.bind(this),this._leftResizeElementDragging.bind(this),null,'ew-resize');this._rightResizeElement=parentElement.createChild('div','overview-grid-window-resizer');UI.UIUtils.installDragHandle(this._rightResizeElement,this._resizerElementStartDragging.bind(this),this._rightResizeElementDragging.bind(this),null,'ew-resize');UI.ARIAUtils.setAccessibleName(this._leftResizeElement,ls`Left Resizer`);UI.ARIAUtils.markAsSlider(this._leftResizeElement);this._leftResizeElement.addEventListener('keydown',event=>this._handleKeyboardResizing(event,false));UI.ARIAUtils.setAccessibleName(this._rightResizeElement,ls`Right Resizer`);UI.ARIAUtils.markAsSlider(this._rightResizeElement);this._rightResizeElement.addEventListener('keydown',event=>this._handleKeyboardResizing(event,true));this._rightResizeElement.addEventListener('focus',this._onRightResizeElementFocused.bind(this));this._leftCurtainElement=parentElement.createChild('div','window-curtain-left');this._rightCurtainElement=parentElement.createChild('div','window-curtain-right');this.reset();}
+_onRightResizeElementFocused(){this._parentElement.scrollLeft=0;}
+reset(){this.windowLeft=0.0;this.windowRight=1.0;this.setEnabled(true);this._updateCurtains();}
+setEnabled(enabled){this._enabled=enabled;this._rightResizeElement.tabIndex=enabled?0:-1;this._leftResizeElement.tabIndex=enabled?0:-1;}
+setClickHandler(clickHandler){this._clickHandler=clickHandler;}
+_resizerElementStartDragging(event){if(!this._enabled){return false;}
+this._resizerParentOffsetLeft=event.pageX-event.offsetX-event.target.offsetLeft;event.stopPropagation();return true;}
+_leftResizeElementDragging(event){this._resizeWindowLeft(event.pageX-this._resizerParentOffsetLeft);event.preventDefault();}
+_rightResizeElementDragging(event){this._resizeWindowRight(event.pageX-this._resizerParentOffsetLeft);event.preventDefault();}
+_handleKeyboardResizing(event,moveRightResizer){let increment=false;if(event.key==='ArrowLeft'||event.key==='ArrowRight'){if(event.key==='ArrowRight'){increment=true;}
+const newPos=this._getNewResizerPosition(event.target.offsetLeft,increment,event.ctrlKey);if(moveRightResizer){this._resizeWindowRight(newPos);}else{this._resizeWindowLeft(newPos);}
+event.consume(true);}}
+_getNewResizerPosition(offset,increment,ctrlPressed){let newPos;let pixelsToShift=ctrlPressed?10:2;pixelsToShift=increment?pixelsToShift:-Math.abs(pixelsToShift);const offsetLeft=offset+ResizerOffset;newPos=offsetLeft+pixelsToShift;if(increment&&newPos<OffsetFromWindowEnds){newPos=OffsetFromWindowEnds;}else if(!increment&&newPos>this._parentElement.clientWidth-OffsetFromWindowEnds){newPos=this._parentElement.clientWidth-OffsetFromWindowEnds;}
+return newPos;}
+_startWindowSelectorDragging(event){if(!this._enabled){return false;}
+this._offsetLeft=this._parentElement.totalOffsetLeft();const position=event.x-this._offsetLeft;this._overviewWindowSelector=new WindowSelector(this._parentElement,position);return true;}
+_windowSelectorDragging(event){this._overviewWindowSelector._updatePosition(event.x-this._offsetLeft);event.preventDefault();}
+_endWindowSelectorDragging(event){const window=this._overviewWindowSelector._close(event.x-this._offsetLeft);delete this._overviewWindowSelector;const clickThreshold=3;if(window.end-window.start<clickThreshold){if(this._clickHandler&&this._clickHandler.call(null,event)){return;}
+const middle=window.end;window.start=Math.max(0,middle-MinSelectableSize/2);window.end=Math.min(this._parentElement.clientWidth,middle+MinSelectableSize/2);}else if(window.end-window.start<MinSelectableSize){if(this._parentElement.clientWidth-window.end>MinSelectableSize){window.end=window.start+MinSelectableSize;}else{window.start=window.end-MinSelectableSize;}}
+this._setWindowPosition(window.start,window.end);}
+_startWindowDragging(event){this._dragStartPoint=event.pageX;this._dragStartLeft=this.windowLeft;this._dragStartRight=this.windowRight;event.stopPropagation();return true;}
+_windowDragging(event){event.preventDefault();let delta=(event.pageX-this._dragStartPoint)/this._parentElement.clientWidth;if(this._dragStartLeft+delta<0){delta=-this._dragStartLeft;}
+if(this._dragStartRight+delta>1){delta=1-this._dragStartRight;}
+this._setWindow(this._dragStartLeft+delta,this._dragStartRight+delta);}
+_resizeWindowLeft(start){if(start<OffsetFromWindowEnds){start=0;}else if(start>this._rightResizeElement.offsetLeft-4){start=this._rightResizeElement.offsetLeft-4;}
+this._setWindowPosition(start,null);}
+_resizeWindowRight(end){if(end>this._parentElement.clientWidth-OffsetFromWindowEnds){end=this._parentElement.clientWidth;}else if(end<this._leftResizeElement.offsetLeft+MinSelectableSize){end=this._leftResizeElement.offsetLeft+MinSelectableSize;}
+this._setWindowPosition(null,end);}
+_resizeWindowMaximum(){this._setWindowPosition(0,this._parentElement.clientWidth);}
+_getRawSliderValue(leftSlider){const minimumValue=this._calculator.minimumBoundary();const valueSpan=this._calculator.maximumBoundary()-minimumValue;if(leftSlider){return minimumValue+valueSpan*this.windowLeft;}
+return minimumValue+valueSpan*this.windowRight;}
+_updateResizeElementPositionValue(leftValue,rightValue){const roundedLeftValue=leftValue.toFixed(2);const roundedRightValue=rightValue.toFixed(2);UI.ARIAUtils.setAriaValueNow(this._leftResizeElement,roundedLeftValue);UI.ARIAUtils.setAriaValueNow(this._rightResizeElement,roundedRightValue);const leftResizeCeiling=roundedRightValue-0.5;const rightResizeFloor=Number(roundedLeftValue)+0.5;UI.ARIAUtils.setAriaValueMinMax(this._leftResizeElement,'0',leftResizeCeiling.toString());UI.ARIAUtils.setAriaValueMinMax(this._rightResizeElement,rightResizeFloor.toString(),'100');}
+_updateResizeElementPositionLabels(){const startValue=this._calculator.formatValue(this._getRawSliderValue(true));const endValue=this._calculator.formatValue(this._getRawSliderValue(false));UI.ARIAUtils.setAriaValueText(this._leftResizeElement,String(startValue));UI.ARIAUtils.setAriaValueText(this._rightResizeElement,String(endValue));}
+_updateResizeElementPercentageLabels(leftValue,rightValue){UI.ARIAUtils.setAriaValueText(this._leftResizeElement,leftValue);UI.ARIAUtils.setAriaValueText(this._rightResizeElement,rightValue);}
+_calculateWindowPosition(){return{rawStartValue:Number(this._getRawSliderValue(true)),rawEndValue:Number(this._getRawSliderValue(false))};}
+_setWindow(windowLeft,windowRight){this.windowLeft=windowLeft;this.windowRight=windowRight;this._updateCurtains();let windowPosition;if(this._calculator){windowPosition=this._calculateWindowPosition();}
+this.dispatchEventToListeners(Events.WindowChanged,windowPosition);}
+_updateCurtains(){let left=this.windowLeft;let right=this.windowRight;const width=right-left;if(this._parentElement.clientWidth!==0){const widthInPixels=width*this._parentElement.clientWidth;const minWidthInPixels=MinSelectableSize/2;if(widthInPixels<minWidthInPixels){const factor=minWidthInPixels/widthInPixels;left=((this.windowRight+this.windowLeft)-width*factor)/2;right=((this.windowRight+this.windowLeft)+width*factor)/2;}}
+const leftResizerPercLeftOffset=(100*left);const rightResizerPercLeftOffset=(100*right);const rightResizerPercRightOffset=(100-(100*right));const leftResizerPercLeftOffsetString=leftResizerPercLeftOffset+'%';const rightResizerPercLeftOffsetString=rightResizerPercLeftOffset+'%';this._leftResizeElement.style.left=leftResizerPercLeftOffsetString;this._rightResizeElement.style.left=rightResizerPercLeftOffsetString;this._leftCurtainElement.style.width=leftResizerPercLeftOffsetString;this._rightCurtainElement.style.width=rightResizerPercRightOffset+'%';this._updateResizeElementPositionValue(leftResizerPercLeftOffset,rightResizerPercLeftOffset);if(this._calculator){this._updateResizeElementPositionLabels();}else{this._updateResizeElementPercentageLabels(leftResizerPercLeftOffsetString,rightResizerPercLeftOffsetString);}}
+_setWindowPosition(start,end){const clientWidth=this._parentElement.clientWidth;const windowLeft=typeof start==='number'?start/clientWidth:this.windowLeft;const windowRight=typeof end==='number'?end/clientWidth:this.windowRight;this._setWindow(windowLeft,windowRight);}
+_onMouseWheel(event){if(!this._enabled){return;}
+if(typeof event.wheelDeltaY==='number'&&event.wheelDeltaY){const zoomFactor=1.1;const mouseWheelZoomSpeed=1/120;const reference=event.offsetX/event.target.clientWidth;this._zoom(Math.pow(zoomFactor,-event.wheelDeltaY*mouseWheelZoomSpeed),reference);}
+if(typeof event.wheelDeltaX==='number'&&event.wheelDeltaX){let offset=Math.round(event.wheelDeltaX*WindowScrollSpeedFactor);const windowLeft=this._leftResizeElement.offsetLeft+ResizerOffset;const windowRight=this._rightResizeElement.offsetLeft+ResizerOffset;if(windowLeft-offset<0){offset=windowLeft;}
+if(windowRight-offset>this._parentElement.clientWidth){offset=windowRight-this._parentElement.clientWidth;}
+this._setWindowPosition(windowLeft-offset,windowRight-offset);event.preventDefault();}}
+_zoom(factor,reference){let left=this.windowLeft;let right=this.windowRight;const windowSize=right-left;let newWindowSize=factor*windowSize;if(newWindowSize>1){newWindowSize=1;factor=newWindowSize/windowSize;}
+left=reference+(left-reference)*factor;left=Number.constrain(left,0,1-newWindowSize);right=reference+(right-reference)*factor;right=Number.constrain(right,newWindowSize,1);this._setWindow(left,right);}}
+export const Events={WindowChanged:Symbol('WindowChanged')};export class WindowSelector{constructor(parent,position){this._startPosition=position;this._width=parent.offsetWidth;this._windowSelector=createElement('div');this._windowSelector.className='overview-grid-window-selector';this._windowSelector.style.left=this._startPosition+'px';this._windowSelector.style.right=this._width-this._startPosition+'px';parent.appendChild(this._windowSelector);}
+_close(position){position=Math.max(0,Math.min(position,this._width));this._windowSelector.remove();return this._startPosition<position?{start:this._startPosition,end:position}:{start:position,end:this._startPosition};}
+_updatePosition(position){position=Math.max(0,Math.min(position,this._width));if(position<this._startPosition){this._windowSelector.style.left=position+'px';this._windowSelector.style.right=this._width-this._startPosition+'px';}else{this._windowSelector.style.left=this._startPosition+'px';this._windowSelector.style.right=this._width-position+'px';}}}

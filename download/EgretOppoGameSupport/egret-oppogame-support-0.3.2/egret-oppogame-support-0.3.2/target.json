@@ -1,0 +1,20 @@
+{
+	"projectType": "oppogame",
+	"version": "0.3.2",
+	"args": [
+		{
+			"name": "name",
+			"default": "oppogame",
+			"files": [
+				"manifest.json"
+			]
+		},
+		{
+			"name": "package",
+			"default": "com.application.demo",
+			"files": [
+				"manifest.json"
+			]
+		}
+	]
+}

@@ -1,0 +1,2 @@
+import{appendStyle}from'./append-style.js';import{focusChanged}from'./focus-changed.js';import{injectCoreStyles}from'./inject-core-styles.js';export function createShadowRootWithCoreStyles(element,cssFile,delegatesFocus){const shadowRoot=element.attachShadow({mode:'open',delegatesFocus});injectCoreStyles(shadowRoot);if(cssFile){appendStyle(shadowRoot,cssFile);}
+shadowRoot.addEventListener('focus',focusChanged.bind(UI),true);return shadowRoot;}

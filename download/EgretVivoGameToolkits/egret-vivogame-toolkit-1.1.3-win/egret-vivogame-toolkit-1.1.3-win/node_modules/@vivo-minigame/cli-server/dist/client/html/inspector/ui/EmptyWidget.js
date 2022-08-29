@@ -1,0 +1,4 @@
+import{VBox}from'./Widget.js';import{XLink}from'./XLink.js';export class EmptyWidget extends VBox{constructor(text){super();this.registerRequiredCSS('ui/emptyWidget.css');this.element.classList.add('empty-view-scroller');this._contentElement=this.element.createChild('div','empty-view');this._textElement=this._contentElement.createChild('div','empty-bold-text');this._textElement.textContent=text;}
+appendParagraph(){return this._contentElement.createChild('p');}
+appendLink(link){return this._contentElement.appendChild(XLink.create(link,'Learn more'));}
+set text(text){this._textElement.textContent=text;}}

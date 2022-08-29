@@ -1,0 +1,8 @@
+import*as Common from'../common/common.js';import*as Host from'../host/host.js';export class FileManager extends Common.ObjectWrapper.ObjectWrapper{constructor(){super();this._saveCallbacks=new Map();Host.InspectorFrontendHost.InspectorFrontendHostInstance.events.addEventListener(Host.InspectorFrontendHostAPI.Events.SavedURL,this._savedURL,this);Host.InspectorFrontendHost.InspectorFrontendHostInstance.events.addEventListener(Host.InspectorFrontendHostAPI.Events.CanceledSaveURL,this._canceledSavedURL,this);Host.InspectorFrontendHost.InspectorFrontendHostInstance.events.addEventListener(Host.InspectorFrontendHostAPI.Events.AppendedToURL,this._appendedToURL,this);}
+save(url,content,forceSaveAs){const result=new Promise(resolve=>this._saveCallbacks.set(url,resolve));Host.InspectorFrontendHost.InspectorFrontendHostInstance.save(url,content,forceSaveAs);return result;}
+_savedURL(event){const url=(event.data.url);const callback=this._saveCallbacks.get(url);this._saveCallbacks.delete(url);if(callback){callback({fileSystemPath:(event.data.fileSystemPath)});}}
+_canceledSavedURL(event){const url=(event.data);const callback=this._saveCallbacks.get(url);this._saveCallbacks.delete(url);if(callback){callback(null);}}
+append(url,content){Host.InspectorFrontendHost.InspectorFrontendHostInstance.append(url,content);}
+close(url){Host.InspectorFrontendHost.InspectorFrontendHostInstance.close(url);}
+_appendedToURL(event){const url=(event.data);this.dispatchEventToListeners(Events.AppendedToURL,url);}}
+export const Events={AppendedToURL:Symbol('AppendedToURL')};

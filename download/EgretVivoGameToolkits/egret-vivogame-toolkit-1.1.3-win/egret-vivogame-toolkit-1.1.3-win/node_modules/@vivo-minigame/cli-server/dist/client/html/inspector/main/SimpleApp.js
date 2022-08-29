@@ -1,0 +1,2 @@
+import*as Common from'../common/common.js';import*as UI from'../ui/ui.js';export default class SimpleApp{presentUI(document){const rootView=new UI.RootView.RootView();self.UI.inspectorView.show(rootView.element);rootView.attachToDocument(document);rootView.focus();}}
+export class SimpleAppProvider{createApp(){return new SimpleApp();}}

@@ -1,0 +1,8 @@
+import*as Bindings from'../bindings/bindings.js';import*as Components from'../components/components.js';import*as SDK from'../sdk/sdk.js';import*as SourceFrame from'../source_frame/source_frame.js';import*as UI from'../ui/ui.js';import*as Workspace from'../workspace/workspace.js';import{Plugin}from'./Plugin.js';export class ScriptOriginPlugin extends Plugin{constructor(textEditor,uiSourceCode){super();this._textEditor=textEditor;this._uiSourceCode=uiSourceCode;}
+static accepts(uiSourceCode){return uiSourceCode.contentType().hasScripts()||!!ScriptOriginPlugin._script(uiSourceCode);}
+async rightToolbarItems(){const originURL=Bindings.CompilerScriptMapping.CompilerScriptMapping.uiSourceCodeOrigin(this._uiSourceCode);if(originURL){const item=UI.UIUtils.formatLocalized('(source mapped from %s)',[Components.Linkifier.Linkifier.linkifyURL(originURL)]);return[new UI.Toolbar.ToolbarItem(item)];}
+const script=await ScriptOriginPlugin._script(this._uiSourceCode);if(!script||!script.originStackTrace){return[];}
+const link=linkifier.linkifyStackTraceTopFrame(script.debuggerModel.target(),script.originStackTrace);return[new UI.Toolbar.ToolbarItem(link)];}
+static async _script(uiSourceCode){const locations=await self.Bindings.debuggerWorkspaceBinding.uiLocationToRawLocations(uiSourceCode,0,0);for(const location of locations){const script=location.script();if(script&&script.originStackTrace){return script;}}
+return null;}}
+export const linkifier=new Components.Linkifier.Linkifier();

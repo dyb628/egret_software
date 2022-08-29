@@ -1,0 +1,11 @@
+{
+    "screenOrientation": "portrait",
+    "showStatusBar":false,
+    "networkTimeout": {
+        "request": 10000,
+        "connectSocket": 10000,
+        "upload": 20000,
+        "download": 20000
+    },
+    "openDataContext": "openDataContext"
+}

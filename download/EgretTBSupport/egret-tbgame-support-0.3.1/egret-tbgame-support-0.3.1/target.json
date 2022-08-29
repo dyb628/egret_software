@@ -1,0 +1,12 @@
+{
+	"projectType": "tbcreativeapp",
+	"version": "0.3.1",
+	"args": [
+		{
+			"name": "defaultTitle",
+			"files": [
+				"app.json"
+			]
+		}
+	]
+}

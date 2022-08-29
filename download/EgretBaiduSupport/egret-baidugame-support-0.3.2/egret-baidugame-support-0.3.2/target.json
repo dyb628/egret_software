@@ -1,0 +1,12 @@
+{
+	"projectType": "baidugame",
+	"version": "0.3.2",
+	"args": [
+		{
+			"name": "appid",
+			"files": [
+				"project.swan.json"
+			]
+		}
+	]
+}

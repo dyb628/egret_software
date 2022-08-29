@@ -1,0 +1,1 @@
+import{registerCommands}from'../InspectorBackendCommands.js';import*as InspectorBackend from'./InspectorBackend.js';import*as NodeURL from'./NodeURL.js';export{InspectorBackend,NodeURL,};self.Protocol=self.Protocol||{};export const inspectorBackend=new InspectorBackend.InspectorBackend();registerCommands(inspectorBackend);

@@ -1,0 +1,18 @@
+{
+	"projectType": "qqgame",
+	"version": "0.3.2",
+	"args": [
+		{
+			"name": "appid",
+			"files": [
+				"project.config.json"
+			]
+		},
+		{
+			"name": "projectname",
+			"files": [
+				"project.config.json"
+			]
+		}
+	]
+}

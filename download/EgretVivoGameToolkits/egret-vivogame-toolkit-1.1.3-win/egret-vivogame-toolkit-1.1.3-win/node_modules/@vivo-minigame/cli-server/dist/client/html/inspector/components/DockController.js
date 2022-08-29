@@ -1,0 +1,18 @@
+import*as Common from'../common/common.js';import*as Host from'../host/host.js';import*as UI from'../ui/ui.js';export class DockController extends Common.ObjectWrapper.ObjectWrapper{constructor(canDock){super();this._canDock=canDock;this._closeButton=new UI.Toolbar.ToolbarButton(Common.UIString.UIString('Close'),'largeicon-delete');this._closeButton.addEventListener(UI.Toolbar.ToolbarButton.Events.Click,Host.InspectorFrontendHost.InspectorFrontendHostInstance.closeWindow.bind(Host.InspectorFrontendHost.InspectorFrontendHostInstance));if(!canDock){this._dockSide=State.Undocked;this._closeButton.setVisible(false);return;}
+this._states=[State.DockedToRight,State.DockedToBottom,State.DockedToLeft,State.Undocked];this._currentDockStateSetting=self.Common.settings.moduleSetting('currentDockState');this._currentDockStateSetting.addChangeListener(this._dockSideChanged,this);this._lastDockStateSetting=self.Common.settings.createSetting('lastDockState','bottom');if(this._states.indexOf(this._currentDockStateSetting.get())===-1){this._currentDockStateSetting.set('right');}
+if(this._states.indexOf(this._lastDockStateSetting.get())===-1){this._currentDockStateSetting.set('bottom');}}
+initialize(){if(!this._canDock){return;}
+this._titles=[Common.UIString.UIString('Dock to right'),Common.UIString.UIString('Dock to bottom'),Common.UIString.UIString('Dock to left'),Common.UIString.UIString('Undock into separate window')];this._dockSideChanged();}
+_dockSideChanged(){this.setDockSide(this._currentDockStateSetting.get());}
+dockSide(){return this._dockSide;}
+canDock(){return this._canDock;}
+isVertical(){return this._dockSide===State.DockedToRight||this._dockSide===State.DockedToLeft;}
+setDockSide(dockSide){if(this._states.indexOf(dockSide)===-1){dockSide=this._states[0];}
+if(this._dockSide===dockSide){return;}
+if(this._dockSide){this._lastDockStateSetting.set(this._dockSide);}
+this._savedFocus=document.deepActiveElement();const eventData={from:this._dockSide,to:dockSide};this.dispatchEventToListeners(Events.BeforeDockSideChanged,eventData);console.timeStamp('DockController.setIsDocked');this._dockSide=dockSide;this._currentDockStateSetting.set(dockSide);Host.InspectorFrontendHost.InspectorFrontendHostInstance.setIsDocked(dockSide!==State.Undocked,this._setIsDockedResponse.bind(this,eventData));this._closeButton.setVisible(this._dockSide!==State.Undocked);this.dispatchEventToListeners(Events.DockSideChanged,eventData);}
+_setIsDockedResponse(eventData){this.dispatchEventToListeners(Events.AfterDockSideChanged,eventData);if(this._savedFocus){this._savedFocus.focus();this._savedFocus=null;}}
+_toggleDockSide(){if(this._lastDockStateSetting.get()===this._currentDockStateSetting.get()){const index=this._states.indexOf(this._currentDockStateSetting.get())||0;this._lastDockStateSetting.set(this._states[(index+1)%this._states.length]);}
+this.setDockSide(this._lastDockStateSetting.get());}}
+export const State={DockedToBottom:'bottom',DockedToRight:'right',DockedToLeft:'left',Undocked:'undocked'};export const Events={BeforeDockSideChanged:Symbol('BeforeDockSideChanged'),DockSideChanged:Symbol('DockSideChanged'),AfterDockSideChanged:Symbol('AfterDockSideChanged')};export class ToggleDockActionDelegate{handleAction(context,actionId){self.Components.dockController._toggleDockSide();return true;}}
+export class CloseButtonProvider{item(){return self.Components.dockController._closeButton;}}

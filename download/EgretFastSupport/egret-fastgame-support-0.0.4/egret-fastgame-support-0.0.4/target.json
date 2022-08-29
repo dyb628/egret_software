@@ -1,0 +1,20 @@
+{
+	"projectType": "fastgame",
+	"version": "0.0.4",
+	"args": [
+		{
+			"name": "name",
+			"default": "fastgame",
+			"files": [
+				"build/manifest.json"
+			]
+		},
+		{
+			"name": "package",
+			"default": "com.egretgame.demo",
+			"files": [
+				"build/manifest.json"
+			]
+		}
+	]
+}

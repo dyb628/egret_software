@@ -1,0 +1,4 @@
+import*as Host from'../host/host.js';import{Capability,SDKModel,Target}from'./SDKModel.js';export class LogModel extends SDKModel{constructor(target){super(target);target.registerLogDispatcher(this);this._logAgent=target.logAgent();this._logAgent.enable();if(!Host.InspectorFrontendHost.isUnderTest()){this._logAgent.startViolationsReport([{name:'longTask',threshold:200},{name:'longLayout',threshold:30},{name:'blockedEvent',threshold:100},{name:'blockedParser',threshold:-1},{name:'handler',threshold:150},{name:'recurringHandler',threshold:50},{name:'discouragedAPIUse',threshold:-1}]);}}
+entryAdded(payload){this.dispatchEventToListeners(Events.EntryAdded,{logModel:this,entry:payload});}
+requestClear(){this._logAgent.clear();}}
+export const Events={EntryAdded:Symbol('EntryAdded')};SDKModel.register(LogModel,Capability.Log,true);

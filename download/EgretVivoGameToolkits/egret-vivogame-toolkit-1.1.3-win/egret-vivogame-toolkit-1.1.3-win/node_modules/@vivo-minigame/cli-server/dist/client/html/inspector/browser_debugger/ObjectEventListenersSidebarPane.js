@@ -1,0 +1,10 @@
+import*as Common from'../common/common.js';import*as EventListeners from'../event_listeners/event_listeners.js';import*as SDK from'../sdk/sdk.js';import*as UI from'../ui/ui.js';export class ObjectEventListenersSidebarPane extends UI.Widget.VBox{constructor(){super();this._refreshButton=new UI.Toolbar.ToolbarButton(ls`Refresh global listeners`,'largeicon-refresh');this._refreshButton.addEventListener(UI.Toolbar.ToolbarButton.Events.Click,this._refreshClick,this);this._refreshButton.setEnabled(false);this._eventListenersView=new EventListeners.EventListenersView.EventListenersView(this.update.bind(this));this._eventListenersView.show(this.element);this.setDefaultFocusedChild(this._eventListenersView);}
+toolbarItems(){return[this._refreshButton];}
+update(){if(this._lastRequestedContext){this._lastRequestedContext.runtimeModel.releaseObjectGroup(objectGroupName);delete this._lastRequestedContext;}
+const executionContext=self.UI.context.flavor(SDK.RuntimeModel.ExecutionContext);if(!executionContext){this._eventListenersView.reset();this._eventListenersView.addEmptyHolderIfNeeded();return;}
+this._lastRequestedContext=executionContext;Promise.all([this._windowObjectInContext(executionContext)]).then(this._eventListenersView.addObjects.bind(this._eventListenersView));}
+wasShown(){super.wasShown();self.UI.context.addFlavorChangeListener(SDK.RuntimeModel.ExecutionContext,this.update,this);this._refreshButton.setEnabled(true);this.update();}
+willHide(){super.willHide();self.UI.context.removeFlavorChangeListener(SDK.RuntimeModel.ExecutionContext,this.update,this);this._refreshButton.setEnabled(false);}
+_windowObjectInContext(executionContext){return executionContext.evaluate({expression:'self',objectGroup:objectGroupName,includeCommandLineAPI:false,silent:true,returnByValue:false,generatePreview:false},false,false).then(result=>result.object&&!result.exceptionDetails?result.object:null);}
+_refreshClick(event){event.data.consume();this.update();}}
+export const objectGroupName='object-event-listeners-sidebar-pane';

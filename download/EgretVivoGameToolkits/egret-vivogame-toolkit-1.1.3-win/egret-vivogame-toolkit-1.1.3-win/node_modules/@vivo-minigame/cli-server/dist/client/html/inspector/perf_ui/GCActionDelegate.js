@@ -1,0 +1,2 @@
+import*as SDK from'../sdk/sdk.js';import*as UI from'../ui/ui.js';export class GCActionDelegate{handleAction(context,actionId){for(const heapProfilerModel of self.SDK.targetManager.models(SDK.HeapProfilerModel.HeapProfilerModel)){heapProfilerModel.collectGarbage();}
+return true;}}

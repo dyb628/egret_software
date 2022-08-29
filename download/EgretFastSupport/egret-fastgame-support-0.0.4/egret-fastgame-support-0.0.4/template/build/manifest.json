@@ -1,0 +1,17 @@
+{
+  "package": "{package}",
+  "name": "{name}",
+  "appType": "fastgame",
+  "icon": "/icon/logo.png",
+  "versionName": "1.0.0",
+  "versionCode": 1,
+  "minPlatformVersion": 1075,
+  "config": {
+    "logLevel": "debug"
+  },
+  "router": {},
+  "display": {
+    "orientation": "portrait",
+    "fullScreen": true
+  }
+}

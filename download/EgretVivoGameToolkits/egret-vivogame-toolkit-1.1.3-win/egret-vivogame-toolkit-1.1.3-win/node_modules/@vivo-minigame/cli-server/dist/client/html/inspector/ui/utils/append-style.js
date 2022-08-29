@@ -1,0 +1,2 @@
+export function appendStyle(node,cssFile){const content=Root.Runtime.cachedResources[cssFile]||'';if(!content){console.error(cssFile+' not preloaded. Check module.json');}
+let styleElement=createElement('style');styleElement.textContent=content;node.appendChild(styleElement);const themeStyleSheet=self.UI.themeSupport.themeStyleSheet(cssFile,content);if(themeStyleSheet){styleElement=createElement('style');styleElement.textContent=themeStyleSheet+'\n'+Root.Runtime.resolveSourceURL(cssFile+'.theme');node.appendChild(styleElement);}}

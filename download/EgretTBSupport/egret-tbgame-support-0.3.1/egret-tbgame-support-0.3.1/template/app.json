@@ -1,0 +1,11 @@
+{
+  "pages": [
+    "pages/index/index"
+  ],
+  "window": {
+    "defaultTitle": "{defaultTitle}",
+    "allowsBounceVertical":"NO",
+    "enableMultiAudio":true,
+    "enableSkia":true
+  }
+}

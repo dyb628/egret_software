@@ -1,0 +1,19 @@
+{
+	"projectType": "mygame",
+	"version": "0.3.4",
+	"args": [
+		{
+			"name": "appid",
+			"default": "wx6ac3f5090a6b99c5",
+			"files": [
+				"project.config.json"
+			]
+		},
+		{
+			"name": "projectname",
+			"files": [
+				"project.config.json"
+			]
+		}
+	]
+}

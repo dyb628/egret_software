@@ -1,0 +1,7 @@
+import*as Common from'../common/common.js';import*as SDK from'../sdk/sdk.js';export class LogManager{constructor(){self.SDK.targetManager.observeModels(SDK.LogModel.LogModel,this);}
+modelAdded(logModel){const eventListeners=[];eventListeners.push(logModel.addEventListener(SDK.LogModel.Events.EntryAdded,this._logEntryAdded,this));logModel[_eventSymbol]=eventListeners;}
+modelRemoved(logModel){Common.EventTarget.EventTarget.removeEventListeners(logModel[_eventSymbol]);}
+_logEntryAdded(event){const data=(event.data);const target=data.logModel.target();const consoleMessage=new SDK.ConsoleModel.ConsoleMessage(target.model(SDK.RuntimeModel.RuntimeModel),data.entry.source,data.entry.level,data.entry.text,undefined,data.entry.url,data.entry.lineNumber,undefined,[data.entry.text,...(data.entry.args||[])],data.entry.stackTrace,data.entry.timestamp,undefined,undefined,data.entry.workerId);if(data.entry.networkRequestId){self.SDK.networkLog.associateConsoleMessageWithRequest(consoleMessage,data.entry.networkRequestId);}
+if(consoleMessage.source===SDK.ConsoleModel.MessageSource.Worker){const workerId=consoleMessage.workerId||'';if(self.SDK.targetManager.targetById(workerId)){return;}
+setTimeout(()=>{if(!self.SDK.targetManager.targetById(workerId)){self.SDK.consoleModel.addMessage(consoleMessage);}},1000);}else{self.SDK.consoleModel.addMessage(consoleMessage);}}}
+const _eventSymbol=Symbol('_events');

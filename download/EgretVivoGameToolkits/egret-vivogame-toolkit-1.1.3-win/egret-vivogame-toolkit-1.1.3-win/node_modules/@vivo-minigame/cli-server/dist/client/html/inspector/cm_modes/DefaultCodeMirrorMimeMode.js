@@ -1,0 +1,2 @@
+import*as TextEditor from'../text_editor/text_editor.js';export class DefaultCodeMirrorMimeMode{async install(extension){const modeFileName=extension.descriptor()['fileName'];return(eval(`import('./${modeFileName}')`));}}
+CmModes.DefaultCodeMirrorMimeMode=DefaultCodeMirrorMimeMode;
